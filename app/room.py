@@ -18,7 +18,7 @@ class Room:
         self.game: Union[None, Game] = None
         self.whos_turn: str
         self.MAX_PLAYERS = 4
-        self.MIN_PLAYERS = 1
+        self.MIN_PLAYERS = 4
         self.game_id: str
 
     async def append_connection(self, connection):
@@ -47,7 +47,7 @@ class Room:
     def get_free_player_game_id(self):
         taken_ids = self.get_taken_ids()
         for color in app.color.Color:
-            if color not in taken_ids:
+            if color.value not in taken_ids:
                 return color.value
 
     async def remove_connection(self, connection_with_given_ws):
