@@ -104,7 +104,7 @@ async def get():
 #     )
 #
 
-@app.websocket("/ws/{room_id}/{client_id}")
+@app.websocket("/ws/{room_id}/{client_id}/{nick}")
 async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str, nick: Optional[str] = "Marcin"):
     try:
         await manager.connect(websocket, room_id, client_id, nick=nick)
