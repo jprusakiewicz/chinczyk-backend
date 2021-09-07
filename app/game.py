@@ -73,7 +73,7 @@ class Game:
     def roll_the_dice(self):
         self.dice = r.randint(1, 6)
 
-    def get_current_state(self, player_id):
+    def get_current_state(self):
         return {
             "idle": self.idle,
             "finnish": self.finnish,
@@ -141,3 +141,6 @@ class Game:
         if number < 0:
             number += 40
         return number
+
+    def remove_players_counters_from_regular_fields(self, game_id):
+        self.regular[game_id] = []

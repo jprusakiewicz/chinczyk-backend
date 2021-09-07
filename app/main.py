@@ -2,6 +2,7 @@ from typing import Optional
 
 import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from starlette.responses import JSONResponse
 from websockets.exceptions import ConnectionClosedOK
 
 from app.connection_manager import ConnectionManager
@@ -59,13 +60,13 @@ async def get():
 #         )
 #
 #
-# @app.post("/game/end/{room_id}")
-# async def end_game(room_id: str):
-#     await manager.end_game(room_id)
-#     return JSONResponse(
-#         status_code=200,
-#         content={"detail": "success"}
-#     )
+@app.post("/game/end/{room_id}")
+async def end_game(room_id: str):
+    await manager.end_game(room_id)
+    return JSONResponse(
+        status_code=200,
+        content={"detail": "success"}
+    )
 #
 #
 # @app.post("/game/end_all_games")

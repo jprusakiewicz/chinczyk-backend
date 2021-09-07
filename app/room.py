@@ -34,6 +34,11 @@ class Room:
         taken_ids = [connection.player.game_id for connection in self.active_connections]
         return taken_ids
 
+    def get_players_in_name_ids(self) -> List[str]:
+        taken_ids = [connection.player.game_id for connection in self.active_connections if
+                     connection.player.in_game == True]
+        return taken_ids
+
     def get_player(self, id):
         player = next(
             connection.player for connection in self.active_connections if connection.player.id == id)
@@ -66,6 +71,7 @@ class Room:
 
     async def start_game(self):
         self.is_game_on = True
+        self.winners = []
         self.whos_turn = self.draw_random_player_id()
         self.game = Game(self.get_taken_ids())
         self.put_all_players_in_game()
@@ -73,6 +79,7 @@ class Room:
         await self.broadcast_json()
 
     async def end_game(self):
+        self.export_score()
         self.is_game_on = False
         self.whos_turn = 0
         self.game = None
@@ -84,21 +91,22 @@ class Room:
             connection.player for connection in self.active_connections if connection.player.game_id == game_id)
         if self.game:
 
-            self.game.remove_players_counters(player.game_id)
+            self.game.remove_players_counters_from_regular_fields(player.game_id)
             if self.whos_turn == player.game_id:
                 self.next_person_move()
             player.in_game = False
 
-            # await self.broadcast_json()
+            await self.broadcast_json()
 
     async def remove_player_by_id(self, id):
         player = next(
             connection.player for connection in self.active_connections if connection.player.id == id)
         if self.game is not None:
-            self.game.remove_players_counters(player.game_id)
+            self.game.remove_players_counters_from_regular_fields(player.game_id)
+            player.in_game = False
+
             if self.whos_turn == player.game_id:
                 self.next_person_move()
-            player.in_game = False
             print(f"kicked player {player.id}")
 
     def put_all_players_in_game(self):
@@ -117,17 +125,20 @@ class Room:
         next_person_move = self.game.handle_players_move(player.game_id, player_move)
         if next_person_move:
             self.next_person_move()
+            await self.check_and_handle_player_full_finnish(player)
 
     def next_person_move(self):
         current_player = self.whos_turn
-        taken_ids = self.get_taken_ids()
+        taken_ids = self.get_players_in_name_ids()
+        if len(taken_ids) == 0:
+            await self.end_game()
         current_idx = taken_ids.index(current_player)
         try:
             next_person = taken_ids[current_idx + 1]
         except IndexError:
             next_person = taken_ids[0]
-        self.whos_turn = next_person
 
+        self.whos_turn = next_person
         self.game.roll_the_dice()
 
     def get_game_state(self, client_id) -> str:
@@ -136,7 +147,7 @@ class Room:
                 connection.player for connection in self.active_connections if connection.player.id == client_id)
             game_state = dict(is_game_on=self.is_game_on, my_color=player.game_id,
                               whos_turn=str(self.whos_turn), dice=self.game.dice,
-                              game_data=self.game.get_current_state(player.game_id), nicks=self.get_nicks())
+                              game_data=self.game.get_current_state(), nicks=self.get_nicks())
         else:
             game_state = dict(is_game_on=self.is_game_on, nicks=self.get_nicks())
 
@@ -168,9 +179,14 @@ class Room:
     async def kick_player(self, player_id):
         await self.remove_player_by_id(player_id)
 
-    async def check_and_handle_full_finnish(self, player):
-        # if len(self.game.players[player.game_id]) == 0:
-        #     print(f"player {player.id} has ended")
-        #     self.winners.append(player.id)
-        #     await self.remove_player_by_game_id(player.game_id)
-        ...  # todo
+    async def check_and_handle_player_full_finnish(self, player):
+        if len(self.game.finnish[player.game_id]) == 4:
+            print(f"player {player.id} has finished")
+            self.winners.append(player.id)
+            await self.remove_player_by_game_id(player.game_id)
+            if len(self.winners) == 4:
+                await self.end_game()
+
+    def export_score(self):
+        # todo
+        print(self.winners)
