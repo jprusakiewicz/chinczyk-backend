@@ -93,7 +93,7 @@ class Room:
 
             self.game.remove_players_counters_from_regular_fields(player.game_id)
             if self.whos_turn == player.game_id:
-                self.next_person_move()
+                await self.next_person_move()
             player.in_game = False
 
             await self.broadcast_json()
@@ -106,7 +106,7 @@ class Room:
             player.in_game = False
 
             if self.whos_turn == player.game_id:
-                self.next_person_move()
+                await self.next_person_move()
             print(f"kicked player {player.id}")
 
     def put_all_players_in_game(self):
@@ -124,10 +124,10 @@ class Room:
 
         next_person_move = self.game.handle_players_move(player.game_id, player_move)
         if next_person_move:
-            self.next_person_move()
+            await self.next_person_move()
             await self.check_and_handle_player_full_finnish(player)
 
-    def next_person_move(self):
+    async def next_person_move(self):
         current_player = self.whos_turn
         taken_ids = self.get_players_in_name_ids()
         if len(taken_ids) == 0:
