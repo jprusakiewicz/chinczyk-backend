@@ -6,7 +6,7 @@
 
 API URL:
 
-    game-makao-backend-dev.capgemini.enl-projects.com
+    game-chinczyk-backend-dev.capgemini.enl-projects.com
 
 New version is updated after each commit on `main` branch (rolling update on K8S).
 
