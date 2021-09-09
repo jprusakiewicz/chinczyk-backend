@@ -10,7 +10,6 @@ from app.server_errors import GameIsStarted, PlayerIdAlreadyInUse, NoRoomWithThi
 
 app = FastAPI()
 
-
 manager = ConnectionManager()
 
 
@@ -67,6 +66,8 @@ async def end_game(room_id: str):
         status_code=200,
         content={"detail": "success"}
     )
+
+
 #
 #
 # @app.post("/game/end_all_games")

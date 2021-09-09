@@ -1,7 +1,7 @@
 from random import Random
 from typing import List
 
-from color import Color
+from .color import Color
 
 r = Random()
 

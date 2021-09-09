@@ -3,6 +3,8 @@ import random
 import uuid
 from typing import List, Union
 
+import requests
+import os
 import app.color
 from .connection import Connection
 from .game import Game
@@ -188,5 +190,12 @@ class Room:
                 await self.end_game()
 
     def export_score(self):
-        # todo
-        print(self.winners)
+        try:
+            result = requests.post(url=os.getenv('EXPORT_RESULTS_URL'), json=dict(roomId=self.id, results=self.winners))
+            if result.status_code == 200:
+                print("export succesfull")
+            else:
+                print("export failed: ", result.text, result.status_code)
+                print(self.winners)
+        except KeyError:
+            print("failed to get EXPORT_RESULT_URL env var")
