@@ -1,10 +1,11 @@
 import json
+import os
 import random
 import uuid
 from typing import List, Union
 
 import requests
-import os
+
 import app.color
 from .connection import Connection
 from .game import Game
@@ -105,10 +106,11 @@ class Room:
             connection.player for connection in self.active_connections if connection.player.id == id)
         if self.game is not None:
             self.game.remove_players_counters_from_regular_fields(player.game_id)
-            player.in_game = False
 
             if self.whos_turn == player.game_id:
                 await self.next_person_move()
+            player.in_game = False
+
             print(f"kicked player {player.id}")
 
     def put_all_players_in_game(self):
@@ -160,12 +162,17 @@ class Room:
 
     @property
     def get_stats(self):
-        return {'is_game_on': self.is_game_on,
-                "whos turn": self.whos_turn,
-                "number_of_connected_players": len(self.active_connections),
-                "regular": self.game.regular,
-                "finnish": self.game.finnish,
-                "idle": self.game.idle}
+        if self.is_game_on:
+            stats = {'is_game_on': self.is_game_on,
+                     "whos turn": self.whos_turn,
+                     "number_of_connected_players": len(self.active_connections),
+                     "regular": self.game.regular,
+                     "finnish": self.game.finnish,
+                     "idle": self.game.idle}
+        else:
+            stats = {'is_game_on': self.is_game_on,
+                     "number_of_connected_players": len(self.active_connections)}
+        return stats
 
     def get_nicks(self):
         nicks = {}
