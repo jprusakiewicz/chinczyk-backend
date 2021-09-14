@@ -25,13 +25,13 @@ class Room:
         self.game_id: str
 
     async def append_connection(self, connection):
-        if len(self.active_connections) <= self.MAX_PLAYERS and self.is_game_on is False:
+        # if len(self.active_connections) <= self.MAX_PLAYERS and self.is_game_on is False:
             connection.player.game_id = self.get_free_player_game_id()
             self.active_connections.append(connection)
             if len(self.active_connections) >= self.MIN_PLAYERS:
                 await self.start_game()
-        else:
-            raise GameIsStarted
+        # else:
+        #     raise GameIsStarted
 
     def get_taken_ids(self) -> List[str]:
         taken_ids = [connection.player.game_id for connection in self.active_connections]
@@ -110,11 +110,10 @@ class Room:
             if self.whos_turn == player.game_id:
                 await self.next_person_move()
             player.in_game = False
-
             print(f"kicked player {player.id}")
 
     def put_all_players_in_game(self):
-        for connection in self.active_connections:
+        for connection in self.active_connections[:4]:
             connection.player.in_game = True
 
     def put_all_players_out_of_game(self):
