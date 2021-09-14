@@ -26,12 +26,13 @@ class Room:
 
     async def append_connection(self, connection):
         # if len(self.active_connections) <= self.MAX_PLAYERS and self.is_game_on is False:
-            connection.player.game_id = self.get_free_player_game_id()
-            self.active_connections.append(connection)
-            if len(self.active_connections) >= self.MIN_PLAYERS:
-                await self.start_game()
-        # else:
-        #     raise GameIsStarted
+        connection.player.game_id = self.get_free_player_game_id()
+        self.active_connections.append(connection)
+        if len(self.active_connections) >= self.MIN_PLAYERS and self.is_game_on == False:
+            await self.start_game()
+
+    # else:
+    #     raise GameIsStarted
 
     def get_taken_ids(self) -> List[str]:
         taken_ids = [connection.player.game_id for connection in self.active_connections]
@@ -115,6 +116,8 @@ class Room:
     def put_all_players_in_game(self):
         for connection in self.active_connections[:4]:
             connection.player.in_game = True
+            if connection.player.game_id == None:
+                connection.player.game_id = self.get_free_player_game_id()
 
     def put_all_players_out_of_game(self):
         for connection in self.active_connections:
@@ -133,7 +136,7 @@ class Room:
     async def next_person_move(self):
         current_player = self.whos_turn
         taken_ids = self.get_players_in_name_ids()
-        if len(taken_ids) == 0:
+        if len(taken_ids) <= 1:
             await self.end_game()
         current_idx = taken_ids.index(current_player)
         try:
@@ -176,8 +179,9 @@ class Room:
     def get_nicks(self):
         nicks = {}
         for connection in self.active_connections:
-            enemy_color = connection.player.game_id
-            nicks[enemy_color] = connection.player.nick
+            if connection.player.in_game == True:
+                enemy_color = connection.player.game_id
+                nicks[enemy_color] = connection.player.nick
         return nicks
 
     def validate_its_players_turn(self, player_id):

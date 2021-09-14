@@ -1,3 +1,4 @@
+import random
 from typing import Optional
 
 import uvicorn
@@ -109,7 +110,7 @@ async def kick_player(room_id: str, player_id: str):
 
 
 @app.websocket("/ws/{room_id}/{client_id}/{nick}")
-async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str, nick: Optional[str] = "Marcin"):
+async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str, nick: str):
     try:
         await manager.connect(websocket, room_id, client_id, nick=nick)
         print(f"new client connected with id: {client_id}")
