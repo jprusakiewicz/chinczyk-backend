@@ -28,6 +28,7 @@ class Room:
         # if len(self.active_connections) <= self.MAX_PLAYERS and self.is_game_on is False:
         connection.player.game_id = self.get_free_player_game_id()
         self.active_connections.append(connection)
+        self.export_room_join(connection.player.id)
         if len(self.active_connections) >= self.MIN_PLAYERS and self.is_game_on == False:
             await self.start_game()
 
@@ -99,6 +100,7 @@ class Room:
             if self.whos_turn == player.game_id:
                 await self.next_person_move()
             player.in_game = False
+            self.export_room_leave(player.id)
 
             await self.broadcast_json()
 
@@ -111,6 +113,8 @@ class Room:
             if self.whos_turn == player.game_id:
                 await self.next_person_move()
             player.in_game = False
+            self.export_room_leave(player.id)
+
             print(f"kicked player {player.id}")
 
     def put_all_players_in_game(self):
@@ -209,3 +213,27 @@ class Room:
                 print(self.winners)
         except KeyError:
             print("failed to get EXPORT_RESULT_URL env var")
+
+    def export_room_join(self, player_id: str):
+        try:
+            result = requests.post(
+                url=os.path.join(os.getenv('EXPORT_MOVEMENT_URL'), "rooms", self.id, "user", player_id))
+            if result.status_code == 200:
+                print("export succesfull")
+            else:
+                print("export failed: ", result.text, result.status_code)
+                print(self.winners)
+        except KeyError:
+            print("failed to get EXPORT_MOVEMENT_URL env var")
+
+    def export_room_leave(self, player_id: str):
+        try:
+            result = requests.delete(
+                url=os.path.join(os.getenv('EXPORT_MOVEMENT_URL'), "rooms", self.id, "user", player_id))
+            if result.status_code == 200:
+                print("export succesfull")
+            else:
+                print("export failed: ", result.text, result.status_code)
+                print(self.winners)
+        except KeyError:
+            print("failed to get EXPORT_MOVEMENT_URL env var")
