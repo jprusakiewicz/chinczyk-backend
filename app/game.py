@@ -142,5 +142,6 @@ class Game:
             number += 40
         return number
 
-    def remove_players_counters_from_regular_fields(self, game_id):
+    def remove_players_counters_from_regular_and_idle_fields(self, game_id):
         self.regular[game_id] = []
+        self.idle[game_id] = []
