@@ -9,7 +9,7 @@ import requests
 import app.color
 from .connection import Connection
 from .game import Game
-from .server_errors import GameIsStarted, ItsNotYourTurn
+from .server_errors import ItsNotYourTurn
 
 
 class Room:
@@ -205,7 +205,8 @@ class Room:
 
     def export_score(self):
         try:
-            result = requests.post(url=os.getenv('EXPORT_RESULTS_URL'), json=dict(roomId=self.id, results=self.winners))
+            result = requests.post(url=os.path.join(os.getenv('EXPORT_RESULTS_URL'), "games/handle-results/chinczyk"),
+                                   json=dict(roomId=self.id, results=self.winners))
             if result.status_code == 200:
                 print("export succesfull")
             else:
@@ -217,23 +218,23 @@ class Room:
     def export_room_join(self, player_id: str):
         try:
             result = requests.post(
-                url=os.path.join(os.getenv('EXPORT_MOVEMENT_URL'), "rooms", self.id, "user", player_id))
+                url=os.path.join(os.getenv('EXPORT_RESULTS_URL'), "rooms", self.id, "user", player_id))
             if result.status_code == 200:
                 print("export succesfull")
             else:
                 print("export failed: ", result.text, result.status_code)
                 print(self.winners)
         except KeyError:
-            print("failed to get EXPORT_MOVEMENT_URL env var")
+            print("failed to get EXPORT_RESULTS_URL env var")
 
     def export_room_leave(self, player_id: str):
         try:
             result = requests.delete(
-                url=os.path.join(os.getenv('EXPORT_MOVEMENT_URL'), "rooms", self.id, "user", player_id))
+                url=os.path.join(os.getenv('EXPORT_RESULTS_URL'), "rooms", self.id, "user", player_id))
             if result.status_code == 200:
                 print("export succesfull")
             else:
                 print("export failed: ", result.text, result.status_code)
                 print(self.winners)
         except KeyError:
-            print("failed to get EXPORT_MOVEMENT_URL env var")
+            print("failed to get EXPORT_RESULTS_URL env var")
