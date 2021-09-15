@@ -1,3 +1,4 @@
+import logging
 import random
 from typing import Optional
 
@@ -41,7 +42,7 @@ async def end_game(room_id: str):
             content={"detail": "success"}
         )
     except RoomIdAlreadyInUse:
-        print(f"Theres already a room with this id: {room_id}")
+        logging.info(f"Theres already a room with this id: {room_id}")
         return JSONResponse(
             status_code=403,
             content={"detail": "Theres already a room with this id: {room_id}"}
@@ -57,7 +58,7 @@ async def end_game(room_id: str):
             content={"detail": "success"}
         )
     except NoRoomWithThisId:
-        print(f"Theres no room with this id: {room_id}")
+        logging.info(f"Theres no room with this id: {room_id}")
         return JSONResponse(
             status_code=403,
             content={"detail": f"Theres no room with this id: {room_id}"}
@@ -113,45 +114,45 @@ async def kick_player(room_id: str, player_id: str):
 async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str, nick: str):
     try:
         await manager.connect(websocket, room_id, client_id, nick=nick)
-        print(f"new client connected with id: {client_id}")
+        logging.info(f"new client connected with id: {client_id}")
 
         try:
             while True:
                 message = await websocket.receive()
-                print(message)
+                logging.info(message)
                 await manager.handle_ws_message(message, room_id, client_id)
 
         except RuntimeError as e:
-            print(e.__class__.__name__)
-            print(e)
+            logging.info(e.__class__.__name__)
+            logging.info(e)
 
         except Exception as e:
-            print(e)
-            print(e.__class__.__name__)
-            print("disconnected")
+            logging.info(e)
+            logging.info(e.__class__.__name__)
+            logging.info("disconnected")
             await manager.disconnect(websocket)
             await manager.broadcast(room_id)
 
     except GameIsStarted:
-        print(f"Theres already game started")
+        logging.info(f"Theres already game started")
         await websocket.close()
 
     except PlayerIdAlreadyInUse:
-        print(f"Theres already connection with this client id {client_id}")
+        logging.info(f"Theres already connection with this client id {client_id}")
         await websocket.close()
 
     except NoRoomWithThisId:
-        print(f"Theres no room with this id: {room_id}")
+        logging.info(f"Theres no room with this id: {room_id}")
         await websocket.close()
 
     except ConnectionClosedOK:
         await manager.kick_player(room_id, client_id)
-        print(f"ConnectionClosedOK {client_id}")
+        logging.info(f"ConnectionClosedOK {client_id}")
         await manager.broadcast(room_id)
 
     except Exception as e:
-        print(e)
-        print("disconnected!")
+        logging.info(e)
+        logging.info("disconnected!")
 
 #
 # @app.websocket("/test/{room_id}/{client_id}")
@@ -190,7 +191,7 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str,
 #
 #
 #     except WebSocketDisconnect:
-#         print("disconnected")
+#         logging.info("disconnected")
 
 
 if __name__ == "__main__":
