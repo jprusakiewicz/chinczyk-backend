@@ -13,15 +13,14 @@ from .server_errors import ItsNotYourTurn
 
 
 class Room:
-    def __init__(self, room_id):
+    def __init__(self, room_id, number_of_players=4):
         self.winners = []  # !use normal id!
         self.id = room_id
         self.active_connections: List[Connection] = []
         self.is_game_on = False
         self.game: Union[None, Game] = None
         self.whos_turn: str
-        self.MAX_PLAYERS = 4
-        self.MIN_PLAYERS = 4
+        self.number_of_players = number_of_players
         self.game_id: str
 
     async def append_connection(self, connection):
@@ -29,7 +28,7 @@ class Room:
         connection.player.game_id = self.get_free_color()
         self.active_connections.append(connection)
         self.export_room_status()
-        if len(self.active_connections) >= self.MIN_PLAYERS and self.is_game_on is False:
+        if len(self.active_connections) >= self.number_of_players and self.is_game_on is False:
             await self.start_game()
 
     def get_taken_game_ids(self) -> List[str]:
@@ -92,6 +91,12 @@ class Room:
         self.game = None
         self.put_all_players_out_of_game()
         await self.broadcast_json()
+
+    async def restart_or_end_game(self):
+        if len(self.active_connections) >= self.number_of_players:
+            await self.restart_game()
+        else:
+            await self.end_game()
 
     async def remove_player_by_game_id(self, game_id):
         player = next(
@@ -208,7 +213,7 @@ class Room:
             self.winners.append(player.id)
             await self.remove_player_by_game_id(player.game_id)
             if len(self.winners) == 4:
-                await self.end_game()
+                await self.restart_or_end_game()
 
     def export_score(self):
         try:

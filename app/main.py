@@ -1,9 +1,8 @@
 import logging
-import random
 from typing import Optional
 
 import uvicorn
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket
 from starlette.responses import JSONResponse
 from websockets.exceptions import ConnectionClosedOK
 
@@ -35,8 +34,25 @@ async def get_stats(room_id: Optional[str] = None):
 
 @app.post("/room/new/{room_id}")
 async def end_game(room_id: str):
+    number_players: int = 4
     try:
         await manager.create_new_room(room_id)
+        return JSONResponse(
+            status_code=200,
+            content={"detail": "success"}
+        )
+    except RoomIdAlreadyInUse:
+        logging.info(f"Theres already a room with this id: {room_id}")
+        return JSONResponse(
+            status_code=403,
+            content={"detail": "Theres already a room with this id: {room_id}"}
+        )
+
+
+@app.post("/room/new/{room_id}/{number_players}")
+async def end_game(room_id: str, number_players: int):
+    try:
+        await manager.create_new_room(room_id, number_players)
         return JSONResponse(
             status_code=200,
             content={"detail": "success"}
@@ -153,6 +169,7 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str,
     except Exception as e:
         logging.info(e)
         logging.info("disconnected!")
+
 
 #
 # @app.websocket("/test/{room_id}/{client_id}")
