@@ -64,7 +64,7 @@ class Room:
         await self.remove_player_by_id(connection_with_given_ws.player.id)
         self.active_connections.remove(connection_with_given_ws)
         self.export_room_status()
-        if len(self.active_connections) <= 1 and self.is_game_on is True:
+        if len(self.get_players_in_game_game_ids()) <= 1 and self.is_game_on is True:
             await self.end_game()
 
     async def broadcast_json(self):
@@ -73,6 +73,7 @@ class Room:
             await connection.ws.send_text(gs)
 
     async def restart_game(self):
+        self.export_score()
         await self.start_game()
 
     async def start_game(self):
@@ -102,7 +103,6 @@ class Room:
         player = next(
             connection.player for connection in self.active_connections if connection.player.game_id == game_id)
         if self.game:
-
             self.game.remove_players_counters_from_regular_and_idle_fields(player.game_id)
             if self.whos_turn == player.game_id:
                 await self.next_person_move()
@@ -121,7 +121,6 @@ class Room:
                 await self.next_person_move()
             player.in_game = False
             self.export_room_status()
-
             print(f"kicked player {player.id}")
 
     def put_all_players_in_game(self):

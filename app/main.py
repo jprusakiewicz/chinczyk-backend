@@ -19,7 +19,7 @@ async def get():
     return {"status": "ok"}
 
 
-@app.get("/stats/")
+@app.get("/stats")
 async def get_stats(room_id: Optional[str] = None):
     if room_id:
         try:
@@ -34,7 +34,6 @@ async def get_stats(room_id: Optional[str] = None):
 
 @app.post("/room/new/{room_id}")
 async def end_game(room_id: str):
-    number_players: int = 4
     try:
         await manager.create_new_room(room_id)
         return JSONResponse(
