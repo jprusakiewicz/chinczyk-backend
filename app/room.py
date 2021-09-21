@@ -95,10 +95,10 @@ class Room:
         self.is_game_on = True
         self.winners = []
         self.whos_turn = self.draw_random_player_id()
-        self.game = Game(self.get_taken_game_ids())
         self.put_all_players_in_game()
+        self.game = Game(self.get_players_in_game_game_ids())
         self.game_id = str(uuid.uuid4().hex)
-        self.start_timer()
+        self.restart_timer()
         await self.broadcast_json()
 
     async def end_game(self):
@@ -244,7 +244,7 @@ class Room:
             else:
                 print("export failed: ", result.text, result.status_code)
                 print(self.winners)
-        except KeyError:
+        except (KeyError, TypeError):
             print("failed to get EXPORT_RESULT_URL env var")
 
     def export_room_status(self):
@@ -275,6 +275,3 @@ class Room:
         self.timer.start()
         self.timestamp = datetime.now() + timedelta(0, self.timeout)
 
-    def start_timer(self):
-        self.timer.start()
-        self.timestamp = datetime.now() + timedelta(0, self.timeout)
