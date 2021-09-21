@@ -1,9 +1,11 @@
 import logging
+from datetime import datetime, timedelta
 from typing import Optional
 
 import uvicorn
 from fastapi import FastAPI, WebSocket
 from starlette.responses import JSONResponse
+from starlette.websockets import WebSocketDisconnect
 from websockets.exceptions import ConnectionClosedOK
 
 from app.connection_manager import ConnectionManager
@@ -170,44 +172,44 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str,
         logging.info("disconnected!")
 
 
-#
-# @app.websocket("/test/{room_id}/{client_id}")
-# async def websocket_endpoint(websocket: WebSocket):
-#     json_to_send = {"is_game_on": True,
-#                     "whos_turn": "Red",
-#                     "nicks": {"Red": "Zbyszek",
-#                               "Green": "Marcin",
-#                               "Blue": "Michał",
-#                               "Yellow": "Łukasz"},
-#                     "dice": 1,
-#                     "game_data": {
-#                         "regular": {
-#                             "Red": [1, 4, 7],
-#                             "Green": [1, 4, 9],
-#                             "Blue": [1],
-#                             "Yellow": [1]},
-#                         "finnish": {
-#                             "Red": [],
-#                             "Green": [1],
-#                             "Blue": [1, 2],
-#                             "Yellow": [1, 4]},
-#                         "idle": {
-#                             "Red": 4,
-#                             "Green": 4,
-#                             "Blue": 4,
-#                             "Yellow": 4}
-#                     }}
-#     try:
-#         while True:
-#             ws = websocket
-#             await ws.accept()
-#
-#             await websocket.send_json(json_to_send)
-#             message = await websocket.receive()
-#
-#
-#     except WebSocketDisconnect:
-#         logging.info("disconnected")
+@app.websocket("/test")
+async def websocket_endpoint(websocket: WebSocket):
+    time = datetime.now() + timedelta(0, 25)
+    json_to_send = {"is_game_on": True,
+                    "timestamp": time.isoformat(),
+                    "whos_turn": "Red",
+                    "nicks": {"Red": "Zbyszek",
+                              "Green": "Marcin",
+                              "Blue": "Michał",
+                              "Yellow": "Łukasz"},
+                    "dice": 1,
+                    "game_data": {
+                        "regular": {
+                            "Red": [1, 4, 7],
+                            "Green": [1, 4, 9],
+                            "Blue": [1],
+                            "Yellow": [1]},
+                        "finnish": {
+                            "Red": [],
+                            "Green": [1],
+                            "Blue": [1, 2],
+                            "Yellow": [1, 4]},
+                        "idle": {
+                            "Red": 4,
+                            "Green": 4,
+                            "Blue": 4,
+                            "Yellow": 4}
+                    }}
+    try:
+        while True:
+            ws = websocket
+            await ws.accept()
+
+            await websocket.send_json(json_to_send)
+            message = await websocket.receive()
+
+    except WebSocketDisconnect:
+        logging.info("disconnected")
 
 
 if __name__ == "__main__":

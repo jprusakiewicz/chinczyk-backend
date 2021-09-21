@@ -1,7 +1,10 @@
+import asyncio
 import json
 import os
 import random
+import threading
 import uuid
+from datetime import datetime, timedelta
 from typing import List, Union
 
 import requests
@@ -22,9 +25,21 @@ class Room:
         self.whos_turn: str
         self.number_of_players = number_of_players
         self.game_id: str
+        self.timeout = self.get_timeout()
+        self.timer = threading.Timer(self.timeout, self.next_person_async)
+
+    def get_timeout(self):
+        try:
+            timeout = float(os.path.join(os.getenv('TIMEOUT_SECONDS'), "rooms/update-room-status"))
+        except TypeError:
+            timeout = 15  # if theres no env var
+        return timeout
+
+    def next_person_async(self):
+        asyncio.run(self.next_person_move())
+        asyncio.run(self.broadcast_json())
 
     async def append_connection(self, connection):
-        # if len(self.active_connections) <= self.MAX_PLAYERS and self.is_game_on is False:
         connection.player.game_id = self.get_free_color()
         self.active_connections.append(connection)
         self.export_room_status()
@@ -83,9 +98,12 @@ class Room:
         self.game = Game(self.get_taken_game_ids())
         self.put_all_players_in_game()
         self.game_id = str(uuid.uuid4().hex)
+        self.start_timer()
         await self.broadcast_json()
 
     async def end_game(self):
+        self.timer.cancel()
+        self.timer.join()
         self.export_score()
         self.is_game_on = False
         self.whos_turn = 0
@@ -144,6 +162,7 @@ class Room:
             await self.check_and_handle_player_full_finnish(player)
 
     async def next_person_move(self):
+        self.restart_timer()
         current_player = self.whos_turn
         taken_ids = self.get_players_in_game_game_ids()
         if len(taken_ids) <= 1:
@@ -163,7 +182,8 @@ class Room:
                 connection.player for connection in self.active_connections if connection.player.id == client_id)
             game_state = dict(is_game_on=self.is_game_on, my_color=player.game_id,
                               whos_turn=str(self.whos_turn), dice=self.game.dice,
-                              game_data=self.game.get_current_state(), nicks=self.get_nicks())
+                              game_data=self.game.get_current_state(), nicks=self.get_nicks(),
+                              timestamp=self.timestamp.isoformat())
         else:
             game_state = dict(is_game_on=self.is_game_on, nicks=self.get_nicks())
 
@@ -249,3 +269,13 @@ class Room:
         except Exception as e:
             print(e.__class__.__name__)
             print("failed to get EXPORT_RESULTS_URL env var")
+
+    def restart_timer(self):
+        self.timer.cancel()
+        self.timer = threading.Timer(self.timeout, self.next_person_async)
+        self.timer.start()
+        self.timestamp = datetime.now() + timedelta(0, self.timeout)
+
+    def start_timer(self):
+        self.timer.start()
+        self.timestamp = datetime.now() + timedelta(0, self.timeout)
