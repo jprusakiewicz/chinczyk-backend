@@ -103,7 +103,6 @@ class Room:
 
     async def end_game(self):
         self.timer.cancel()
-        self.timer.join()
         self.export_score()
         self.is_game_on = False
         self.whos_turn = 0
