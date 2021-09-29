@@ -1,4 +1,5 @@
 import logging
+import uuid
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -172,12 +173,14 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str,
         logging.info("disconnected!")
 
 
-@app.websocket("/test")
+@app.websocket("/test/{room_id}/{client_id}/{nick}")
 async def websocket_endpoint(websocket: WebSocket):
     time = datetime.now() + timedelta(0, 25)
     json_to_send = {"is_game_on": True,
                     "timestamp": time.isoformat(),
                     "whos_turn": "Red",
+                    "my_color": "Red",
+                    "turn_id": str(uuid.uuid4()),
                     "nicks": {"Red": "Zbyszek",
                               "Green": "Marcin",
                               "Blue": "Michał",

@@ -180,6 +180,7 @@ class Room:
             player = next(
                 connection.player for connection in self.active_connections if connection.player.id == client_id)
             game_state = dict(is_game_on=self.is_game_on, my_color=player.game_id,
+                              turn_id=self.game.turn_id,
                               whos_turn=str(self.whos_turn), dice=self.game.dice,
                               game_data=self.game.get_current_state(), nicks=self.get_nicks(),
                               timestamp=self.timestamp.isoformat())
@@ -274,4 +275,3 @@ class Room:
         self.timer = threading.Timer(self.timeout, self.next_person_async)
         self.timer.start()
         self.timestamp = datetime.now() + timedelta(0, self.timeout)
-

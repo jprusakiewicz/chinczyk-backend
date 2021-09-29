@@ -1,3 +1,4 @@
+import uuid
 from random import Random
 from typing import List
 
@@ -21,6 +22,8 @@ class Game:
             "Blue": [],
             "Yellow": []}
         self.dice: int = 1
+        self.turn_id = str(uuid.uuid4())
+
 
     def handle_players_move(self, player_color, player_move: dict):
         try:
@@ -72,6 +75,7 @@ class Game:
 
     def roll_the_dice(self):
         self.dice = r.randint(1, 6)
+        self.turn_id = str(uuid.uuid4())
 
     def get_current_state(self):
         return {
