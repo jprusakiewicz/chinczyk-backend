@@ -249,6 +249,7 @@ class Room:
             print("failed to get EXPORT_RESULT_URL env var")
 
     def export_room_status(self):
+        connectionsCount: int = len(self.active_connections)
         try:
             if self.is_game_on:
                 is_in_game = self.get_players_in_game_regular_ids()
@@ -259,7 +260,7 @@ class Room:
                 is_in_game = self.get_taken_ids()
             result = requests.post(
                 url=os.path.join(os.getenv('EXPORT_RESULTS_URL'), "rooms/update-room-status"),
-                json=dict(roomId=self.id, currentResults=self.winners, activePlayers=is_in_game))
+                json=dict(roomId=self.id, currentResults=self.winners, connectionsCount=connectionsCount, activePlayers=is_in_game))
 
             if result.status_code == 200:
                 print("export succesfull")
