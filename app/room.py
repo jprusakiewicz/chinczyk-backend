@@ -198,6 +198,7 @@ class Room:
             stats = {'is_game_on': self.is_game_on,
                      "whos turn": self.whos_turn,
                      'number_of_players': self.number_of_players,
+                     'players_ids': [self.get_players_in_game_regular_ids()],
                      "number_of_connected_players": len(self.active_connections),
                      "regular": self.game.regular,
                      "finnish": self.game.finnish,
@@ -205,6 +206,7 @@ class Room:
         else:
             stats = {'is_game_on': self.is_game_on,
                      'number_of_players': self.number_of_players,
+                     'players_ids': [self.get_players_in_game_regular_ids()],
                      "number_of_connected_players": len(self.active_connections)}
         return stats
 
