@@ -148,4 +148,4 @@ class Game:
 
     def remove_players_counters_from_regular_and_idle_fields(self, game_id):
         self.regular[game_id] = []
-        self.idle[game_id] = []
+        self.idle[game_id] = 0

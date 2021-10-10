@@ -29,10 +29,12 @@ class ConnectionManager:
     async def end_game(self, room_id: str):
         room = self.get_room(room_id)
         await room.end_game()
+        await room.broadcast_json()
 
     async def end_all_games(self):
         for room in self.rooms:
             await room.end_game()
+            await room.broadcast_json()
 
     async def connect(self, websocket: WebSocket, room_id: str, client_id: str, nick: str):
         self.validate_client_id(room_id, client_id)
@@ -48,14 +50,13 @@ class ConnectionManager:
     async def disconnect(self, websocket: WebSocket):
         connection_with_given_ws, room = self.get_active_connection(websocket)
         await room.remove_connection(connection_with_given_ws)
+        await room.broadcast_json()
 
     async def broadcast(self, room_id):
         room = self.get_room(room_id)
         for connection in room.active_connections:
-            try:
-                await connection.ws.send_text(room.get_game_state(connection.player.id))
-            except RuntimeError:
-                await self.kick_player(room_id, connection.player.id)
+            await connection.ws.send_text(room.get_game_state(connection.player.id))
+
 
     async def kick_player(self, room_id, player_id):
         room = self.get_room(room_id)

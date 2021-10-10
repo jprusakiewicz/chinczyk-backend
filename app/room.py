@@ -82,7 +82,7 @@ class Room:
     async def remove_connection(self, connection_with_given_ws):
         await self.remove_player_by_id(connection_with_given_ws.player.id)
         self.active_connections.remove(connection_with_given_ws)
-        self.export_room_status()
+
         if len(self.get_players_in_game_game_ids()) <= 1 and self.is_game_on is True:
             await self.end_game()
 
@@ -112,13 +112,13 @@ class Room:
         self.whos_turn = 0
         self.game = None
         self.put_all_players_out_of_game()
-        await self.broadcast_json()
 
     async def restart_or_end_game(self):
         if len(self.active_connections) >= self.number_of_players:
             await self.restart_game()
         else:
             await self.end_game()
+            await self.broadcast_json()
 
     async def remove_player_by_game_id(self, game_id):
         player = next(
@@ -129,8 +129,6 @@ class Room:
                 await self.next_person_move()
             player.in_game = False
             self.export_room_status()
-
-            await self.broadcast_json()
 
     async def remove_player_by_id(self, id):
         player = next(
@@ -241,6 +239,7 @@ class Room:
             await self.remove_player_by_game_id(player.game_id)
             if len(self.winners) == 4:
                 await self.restart_or_end_game()
+            await self.broadcast_json()
 
     def export_score(self):
         try:
@@ -266,7 +265,8 @@ class Room:
                 is_in_game = self.get_taken_ids()
             result = requests.post(
                 url=os.path.join(os.getenv('EXPORT_RESULTS_URL'), "rooms/update-room-status"),
-                json=dict(roomId=self.id, currentResults=self.winners, connectionsCount=connectionsCount, activePlayers=is_in_game))
+                json=dict(roomId=self.id, currentResults=self.winners, connectionsCount=connectionsCount,
+                          activePlayers=is_in_game))
 
             if result.status_code == 200:
                 print("export succesfull")
