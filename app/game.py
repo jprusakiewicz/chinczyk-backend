@@ -24,7 +24,6 @@ class Game:
         self.dice: int = 1
         self.turn_id = str(uuid.uuid4())
 
-
     def handle_players_move(self, player_color, player_move: dict):
         try:
             if player_move['other']:
@@ -71,6 +70,9 @@ class Game:
                     self.regular[player_color].remove(number)
                 except ValueError:
                     pass
+
+                if self.dice == 6:  # if 6 one more turn
+                    return False
                 return True
 
     def roll_the_dice(self):
