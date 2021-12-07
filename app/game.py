@@ -71,7 +71,9 @@ class Game:
                 except ValueError:
                     pass
 
-                if self.dice == 6:  # if 6 one more turn
+                if self.dice == 6:
+                    # if 6 one more turn
+                    self.roll_the_dice()
                     return False
                 return True
 
